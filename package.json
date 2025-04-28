@@ -1,0 +1,17 @@
+{
+  "name": "tictactoe-ws-for-nn",
+  "version": "1.0.0",
+  "description": "A multiplayer Tic Tac Toe game built for one purpose: collecting gameplay data to train a neural network. Players connect through a WebSocket server (hosted via ngrok) and battle it out. Every match is recorded in JSON format and uploaded to my local server for dataset building. This repo focuses on data generation, not the game itself.",
+  "license": "ISC",
+  "author": "GodXero",
+  "type": "commonjs",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "env": "^0.0.2",
+    "express": "^5.1.0",
+    "ws": "^8.18.1"
+  }
+}
