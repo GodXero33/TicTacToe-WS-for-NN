@@ -1,6 +1,9 @@
+import TicTacToeGame from "./tic-tac-toe-game.js";
 import GameConnectionHandler from "./ws.js";
 
-const gameConnectionHandler = new GameConnectionHandler(null);
+const canvas = document.getElementById('game-canvas');
+const game = new TicTacToeGame(canvas);
+const gameConnectionHandler = new GameConnectionHandler(game);
 
 window.addEventListener('DOMContentLoaded', () => {
 	gameConnectionHandler.init();

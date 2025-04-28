@@ -56,7 +56,7 @@ export default class GameConnectionHandler {
 
 	init () {
 		this.#connectWebSocket();
-		this.#initEvents();
+		// this.#initEvents();
 
 		const reconnectInterval = setInterval(() => {
 			if (this.ws.readyState === WebSocket.CLOSED) {
