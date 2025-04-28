@@ -67,8 +67,8 @@ The real mission behind this repo is to:
 
 ## License
 
-No license. This is a **personal learning project**.  
-It is not intended for public use or contributions.
+This project is licensed under the MIT License.  
+It’s a **personal learning project** and not intended for public use or contributions, but feel free to use it as you like under the MIT terms.
 
 ---
 
