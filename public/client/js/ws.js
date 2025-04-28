@@ -4,6 +4,12 @@ const playerName = 'GodXero';
 const protocol = window.location.protocol;
 const host = window.location.host;
 
+class GameConnectionHandler {
+	constructor (game) {
+		this.game = game;
+	}
+}
+
 function connectWebSocket () {
 	ws = new WebSocket(`ws${protocol === 'https:' ? 's' : ''}://${host}?name=${playerName}`);
 
