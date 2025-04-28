@@ -36,7 +36,7 @@ function startReconnect () {
 function initEvents () {
 	window.addEventListener('click', () => {
 		if (ws && ws.readyState === WebSocket.OPEN) {
-			ws.send(JSON.stringify({ message: 'Hello mother fucker' }));
+			ws.send(JSON.stringify({ message: 'Hello' }));
 		} else {
 			console.log('WebSocket is not open, message not sent.');
 		}
