@@ -38,7 +38,19 @@ export default class TicTacToeGame {
 
 		resizeObserver.observe(this.canvas);
 
+		this.canvas.addEventListener('click', event => {
+			const rect = this.canvas.getBoundingClientRect();
+
+			this.#onclick(Math.floor((event.x - rect.x) / this.cellSize), Math.floor((event.y - rect.y) / this.cellSize));
+		});
+
 		this.#animate();
+	}
+
+	#onclick (x, y) {
+		if (this.grid[y][x] !== 0) return;
+
+		this.grid[y][x] = Math.random() > 0.5 ? 1 : 2;
 	}
 
 	#update () {}
