@@ -5,6 +5,7 @@ import WebSocket from 'ws';
 import path from 'path';
 import fs from 'fs';
 import { URL } from 'url';
+import Room from './room';
 
 dotenv.config();
 
@@ -33,16 +34,23 @@ app.post('/game-data', (req, res) => {
 const server = app.listen(port, () => console.log(`Server is running on http://localhost:${port}`));
 const wss = new WebSocket.Server({ server });
 
+const rooms = new Array<Room>();
+let lastRoom: Room | null = null;
+
 wss.on('connection', (ws, req) => {
 	const url = new URL(req.url!, `http://${req.headers.host}`);
 	const playerName = url.searchParams.get('name');
 
-	console.log('Player name:', playerName);
+	if (lastRoom) {
+		lastRoom.setClientB(ws, playerName);
+		lastRoom = null;
+	} else {
+		lastRoom = new Room(ws, playerName);
 
-	ws.on('message', (message: any) => {
-		console.log('Received:', JSON.parse(message));
-		sendMessage(ws, { message: JSON.parse(message) });
-	});
+		rooms.push(lastRoom);
+	}
+
+	console.log('Player name:', playerName);
 });
 
 function sendMessage (ws: WebSocket, message: any) {

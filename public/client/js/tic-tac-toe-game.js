@@ -1,17 +1,16 @@
 export default class TicTacToeGame {
-	constructor (canvas) {
+	constructor (canvas, connectionHandler) {
 		this.canvas = canvas;
-		this.ctx = canvas.getContext('2d');
+		this.connectionHandler = connectionHandler;
 
+		this.ctx = canvas.getContext('2d');
 		this.width = 0;
 		this.height = 0;
-
 		this.grid = Array.from({ length: 3 }, () => Array.from({ length: 3 }, () => 0));
-
-		this.grid[1][1] = 1;
-		this.grid[2][2] = 2;
-
 		this.cellSize = 0;
+		this.player = 1;
+
+		this.connectionHandler.game = this;
 
 		this.#init();
 	}
@@ -50,7 +49,14 @@ export default class TicTacToeGame {
 	#onclick (x, y) {
 		if (this.grid[y][x] !== 0) return;
 
-		this.grid[y][x] = Math.random() > 0.5 ? 1 : 2;
+		this.connectionHandler.send({
+			type: 'move',
+			move: { x, y }
+		}).then();
+	}
+
+	onServerClick (x, y, player) {
+		this.grid[y][x] = player;
 	}
 
 	#update () {}

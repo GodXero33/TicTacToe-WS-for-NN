@@ -1,10 +1,15 @@
-"use strict";
+const WEBSOCKET_PROTOCOL_CODES = {
+	'START_REQUEST': 0,
+	'START_ACCEPTED': 1
+};
 
 export default class GameConnectionHandler {
-	constructor (game) {
-		this.game = game;
+	constructor () {
 		this.ws = null;
 		this.playerName = 'GodXero';
+		this.player = 1;
+		this.roomId = '1234';
+		this.game = null;
 	}
 
 	#connectWebSocket () {
@@ -25,6 +30,27 @@ export default class GameConnectionHandler {
 
 	#onmessage (event) {
 		console.log('Message received:', JSON.parse(event.data));
+
+		try {
+			const data = JSON.parse(event.data);
+
+			if (!data || !data.code) return;
+
+			if (data.code === WEBSOCKET_PROTOCOL_CODES['START_REQUEST']) {
+				console.log(data);
+				this.send({
+					code: WEBSOCKET_PROTOCOL_CODES['START_ACCEPTED']
+				});
+			}
+
+			// if (data.code === 'move') {
+			// 	if (!this.game) return;
+
+			// 	this.game.onServerClick(data.move.x, data.move.y, data.player);
+			// }
+		} catch (error) {
+			console.error(error);
+		}
 	}
 
 	#onclose () {
@@ -70,6 +96,19 @@ export default class GameConnectionHandler {
 			writable: false,
 			configurable: false,
 			enumerable: true
+		});
+	}
+
+	send (message) {
+		return new Promise((resolve, reject) => {
+			if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+				message.player = this.player;
+				message.roomId = this.roomId;
+				this.ws.send(JSON.stringify(message));
+				resolve();
+			} else {
+				reject();
+			}
 		});
 	}
 }
