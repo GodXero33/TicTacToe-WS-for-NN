@@ -1,15 +1,22 @@
 const WEBSOCKET_PROTOCOL_CODES = {
 	'START_REQUEST': 0,
-	'START_ACCEPTED': 1
+	'START_ACCEPTED': 1,
+	'PLAYER_CHANCE': 2,
+	'WAIT_FOR_OPPONENT': 3,
+	'MOVE': 4,
+	'MOVE_BACK': 5
 };
 
 export default class GameConnectionHandler {
 	constructor () {
 		this.ws = null;
-		this.playerName = 'GodXero';
-		this.player = 1;
-		this.roomId = '1234';
+		this.playerName = null;
+		this.player = null;
+		this.roomId = null;
 		this.game = null;
+		this.opponent = null;
+		this.initialized = false;
+		this.playerChance = false;
 	}
 
 	#connectWebSocket () {
@@ -36,16 +43,40 @@ export default class GameConnectionHandler {
 			if (!data || !data.code === undefined) return;
 
 			if (data.code === WEBSOCKET_PROTOCOL_CODES.START_REQUEST) {
+				this.player = data.player;
+				this.roomId = data.roomId;
+				this.opponent = data.opponentName;
+
 				this.send({
 					code: WEBSOCKET_PROTOCOL_CODES.START_ACCEPTED
 				});
+
+				return;
 			}
 
-			// // if (data.code === 'move') {
-			// // 	if (!this.game) return;
+			if (data.code === WEBSOCKET_PROTOCOL_CODES.PLAYER_CHANCE) {
+				alert('Your turn');
+				this.playerChance = true;
+				return;
+			}
 
-			// // 	this.game.onServerClick(data.move.x, data.move.y, data.player);
-			// // }
+			if (data.code === WEBSOCKET_PROTOCOL_CODES.WAIT_FOR_OPPONENT) {
+				alert('Wait opponent move');
+				this.playerChance = false;
+				return;
+			}
+
+			if (data.code === WEBSOCKET_PROTOCOL_CODES.MOVE) {
+				this.game.onServerClick(data.cell[0], data.cell[1], this.player);
+				return;
+			}
+
+			if (data.code === WEBSOCKET_PROTOCOL_CODES.MOVE_BACK) {
+				this.game.onServerClick(data.cell[0], data.cell[1], this.player == 1 ? 2 : 1);
+				alert('Your turn');
+
+				this.playerChance = true;
+			}
 		} catch (error) {
 			console.error(error);
 		}
@@ -59,7 +90,7 @@ export default class GameConnectionHandler {
 		console.log('WebSocket error:', error);
 	}
 
-	#initEvents () {
+	/* #initEvents () {
 		window.addEventListener('click', () => {
 			if (this.ws && this.ws.readyState === WebSocket.OPEN) {
 				this.ws.send(JSON.stringify({ message: 'Hello' }));
@@ -76,11 +107,15 @@ export default class GameConnectionHandler {
 				headers: { 'Content-Type': 'application/json' }
 			}).then(res => res.json()).then(mg => console.log(mg)).catch(error => console.error(error));
 		});
-	}
+	} */
 
-	init () {
+	init (playerName) {
+		if (this.initialized) return;
+
+		this.playerName = playerName;
+		this.initialized = true;
+
 		this.#connectWebSocket();
-		// this.#initEvents();
 
 		const reconnectInterval = setInterval(() => {
 			if (this.ws.readyState === WebSocket.CLOSED) {
@@ -100,7 +135,7 @@ export default class GameConnectionHandler {
 	send (message) {
 		return new Promise((resolve, reject) => {
 			if (this.ws && this.ws.readyState === WebSocket.OPEN) {
-				message.player = this.player;
+				message.player = this.playerName;
 				message.roomId = this.roomId;
 				this.ws.send(JSON.stringify(message));
 				resolve();
@@ -108,5 +143,14 @@ export default class GameConnectionHandler {
 				reject();
 			}
 		});
+	}
+
+	click (x, y) {
+		this.send({
+			code: WEBSOCKET_PROTOCOL_CODES.MOVE,
+			cell: [x, y]
+		});
+
+		this.playerChance = false;
 	}
 }

@@ -38,6 +38,10 @@ export default class TicTacToeGame {
 		resizeObserver.observe(this.canvas);
 
 		this.canvas.addEventListener('click', event => {
+			console.log(1);
+			if (!this.connectionHandler.playerChance) return;
+			console.log(2);
+
 			const rect = this.canvas.getBoundingClientRect();
 
 			this.#onclick(Math.floor((event.x - rect.x) / this.cellSize), Math.floor((event.y - rect.y) / this.cellSize));
@@ -49,10 +53,7 @@ export default class TicTacToeGame {
 	#onclick (x, y) {
 		if (this.grid[y][x] !== 0) return;
 
-		this.connectionHandler.send({
-			type: 'move',
-			move: { x, y }
-		}).then();
+		this.connectionHandler.click(x, y);
 	}
 
 	onServerClick (x, y, player) {

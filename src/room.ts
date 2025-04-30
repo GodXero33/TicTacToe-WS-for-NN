@@ -11,7 +11,8 @@ export default class Room {
 	private clientA!: Client;
 	private clientB!: Client;
 	private readyCount: number = 0;
-	
+	private isClientAFirstPlayer: boolean  = false;
+
 	public id!: string;
 	public status: number = Room.STATUS_STARTING;
 
@@ -34,9 +35,13 @@ export default class Room {
 		if (Math.random() > 0.5) {
 			this.clientA.setSymbol(1);
 			this.clientB.setSymbol(2);
+
+			this.isClientAFirstPlayer = true;
 		} else {
 			this.clientA.setSymbol(2);
 			this.clientB.setSymbol(1);
+
+			this.isClientAFirstPlayer = false;
 		}
 
 		this.clientA.send({
@@ -62,6 +67,22 @@ export default class Room {
 
 			if (this.readyCount == 2) {
 				this.status = Room.STATUS_STARTED;
+
+				if (this.isClientAFirstPlayer) {
+					this.clientA.send({
+						code: WEBSOCKET_PROTOCOL_CODES.PLAYER_CHANCE
+					});
+					this.clientB.send({
+						code: WEBSOCKET_PROTOCOL_CODES.WAIT_FOR_OPPONENT
+					});
+				} else {
+					this.clientA.send({
+						code: WEBSOCKET_PROTOCOL_CODES.WAIT_FOR_OPPONENT
+					});
+					this.clientB.send({
+						code: WEBSOCKET_PROTOCOL_CODES.PLAYER_CHANCE
+					});
+				}
 			}
 		}
 	}
@@ -71,6 +92,25 @@ export default class Room {
 		if (this.clientB) this.clientB.close();
 
 		this.status = Room.STATUS_CLOSED;
+	}
+
+	public requestMove (client: Client, x: number, y: number): void {
+		const mgForOpponent = {
+			code: WEBSOCKET_PROTOCOL_CODES.MOVE_BACK,
+			cell: [x, y]
+		};
+		const mgForClient = {
+			code: WEBSOCKET_PROTOCOL_CODES.MOVE,
+			cell: [x, y]
+		};
+
+		if (client == this.clientA) {
+			this.clientA.send(mgForClient);
+			this.clientB.send(mgForOpponent);
+		} else {
+			this.clientA.send(mgForOpponent);
+			this.clientB.send(mgForClient);
+		}
 	}
 
 	private static getNewId (): string {

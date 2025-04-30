@@ -72,6 +72,81 @@ body {
 	height: 100%;
 }
 
+#menu-cont {
+	position: absolute;
+	padding: 0.5rem;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	background-color: #0b0841;
+}
+
+#menu-cont.hide {
+	opacity: 0;
+	pointer-events: none;
+}
+
+#menu-cont > div {
+	position: relative;
+	padding: 1rem;
+	top: 50%;
+	left: 50%;
+	width: 100%;
+	height: fit-content;
+	max-width: 500px;
+	transform: translate(-50%, -50%);
+	background-color: #ffffff;
+	border: 5px solid #706a6a;
+	border-radius: 8px;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 0.8rem;
+}
+
+#menu-cont > div > div {
+	width: 100%;
+	display: flex;
+	align-items: center;
+	gap: 0.8rem;
+}
+
+#menu-cont .label {
+	text-align: center;
+}
+
+#menu-cont input {
+	flex-grow: 1;
+}
+
+#menu-cont .label, #menu-cont input {
+	padding: 0.5rem;
+	color: #000000;
+	font-size: 1rem;
+	font-family: Verdana, Geneva, Tahoma, sans-serif;
+}
+
+#menu-cont button {
+	padding: 0.8rem;
+	color: #000000;
+	font-size: 0.85rem;
+	font-family: Verdana, Geneva, Tahoma, sans-serif;
+	cursor: pointer;
+	background-color: #4ebdf8;
+	outline: none;
+	border: none;
+	border-radius: 7px;
+}
+
+#menu-cont button:hover {
+	background-color: #76caf8;
+}
+
+#menu-cont button:active {
+	background-color: #f87676;
+}
+
 @container game-holder (aspect-ratio < 1) {
 	#game-cont {
 		width: calc(100% - var(--game-cont-margin));

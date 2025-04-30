@@ -18,11 +18,18 @@ export default class Client {
 
 		this.ws.addEventListener('message', (event: WebSocket.MessageEvent) => {
 			const data = JSON.parse(event.data as string);
+			console.log(`${this.name}:\n${event.data}`);
 
 			if (!data || !data.code === undefined) return;
 
 			if (data.code === WEBSOCKET_PROTOCOL_CODES.START_ACCEPTED) {
 				this.room.gameStartAccept(this);
+				return;
+			}
+
+			if (data.code === WEBSOCKET_PROTOCOL_CODES.MOVE) {
+				this.room.requestMove(this, data.cell[0], data.cell[1]);
+				return;
 			}
 		});
 
