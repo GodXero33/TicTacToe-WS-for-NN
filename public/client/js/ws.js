@@ -90,25 +90,6 @@ export default class GameConnectionHandler {
 		console.log('WebSocket error:', error);
 	}
 
-	/* #initEvents () {
-		window.addEventListener('click', () => {
-			if (this.ws && this.ws.readyState === WebSocket.OPEN) {
-				this.ws.send(JSON.stringify({ message: 'Hello' }));
-			} else {
-				console.log('WebSocket is not open, message not sent.');
-			}
-
-			const protocol = window.location.protocol;
-			const host = window.location.host;
-
-			fetch(`${protocol}//${host}/game-data`, {
-				method: 'POST',
-				body: JSON.stringify({ game: true }),
-				headers: { 'Content-Type': 'application/json' }
-			}).then(res => res.json()).then(mg => console.log(mg)).catch(error => console.error(error));
-		});
-	} */
-
 	init (playerName) {
 		if (this.initialized) return;
 

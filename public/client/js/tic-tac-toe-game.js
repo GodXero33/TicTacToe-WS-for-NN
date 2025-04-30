@@ -38,9 +38,7 @@ export default class TicTacToeGame {
 		resizeObserver.observe(this.canvas);
 
 		this.canvas.addEventListener('click', event => {
-			console.log(1);
 			if (!this.connectionHandler.playerChance) return;
-			console.log(2);
 
 			const rect = this.canvas.getBoundingClientRect();
 

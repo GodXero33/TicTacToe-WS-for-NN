@@ -1,6 +1,22 @@
 import WebSocket from 'ws';
 import Client from './client';
 import WEBSOCKET_PROTOCOL_CODES from './protocol';
+import fs from 'fs';
+import path from 'path';
+
+class MoveHistory {
+	public player: number;
+	public x: number;
+	public y: number;
+	public grid: Array<Array<number>>;
+
+	constructor (player: number, x: number, y: number, grid: Array<Array<number>>) {
+		this.player = player;
+		this.x = x;
+		this.y = y;
+		this.grid = grid;
+	}
+}
 
 export default class Room {
 	public static STATUS_WAITING = 0;
@@ -8,10 +24,16 @@ export default class Room {
 	public static STATUS_CLOSED = 2;
 	public static STATUS_STARTING = 3;
 
+	public static GAME_OVER_STATUS_PLAYER_1 = 1;
+	public static GAME_OVER_STATUS_PLAYER_2 = 2;
+	public static GAME_OVER_STATUS_DRAW = 3;
+
 	private clientA!: Client;
 	private clientB!: Client;
 	private readyCount: number = 0;
 	private isClientAFirstPlayer: boolean  = false;
+	private grid: Array<Array<number>>;
+	private history: Array<MoveHistory> = new Array();
 
 	public id!: string;
 	public status: number = Room.STATUS_STARTING;
@@ -19,6 +41,8 @@ export default class Room {
 	constructor (wsA: WebSocket, clientAName: string | null) {
 		this.clientA = new Client(wsA, clientAName, this);
 		this.id = Room.getNewId();
+
+		this.grid = Array.from({ length: 3 }, () => Array.from({ length: 3 }, () => 0));
 	}
 
 	public isFull (): boolean {
@@ -105,12 +129,62 @@ export default class Room {
 		};
 
 		if (client == this.clientA) {
+			this.checkMove(x, y, this.isClientAFirstPlayer ? 1 : 2);
+
 			this.clientA.send(mgForClient);
 			this.clientB.send(mgForOpponent);
 		} else {
+			this.checkMove(x, y, this.isClientAFirstPlayer ? 2 : 1);
 			this.clientA.send(mgForOpponent);
 			this.clientB.send(mgForClient);
 		}
+	}
+
+	private getMatchData () {
+		return {
+			id: this.id,
+			data: this.history
+		};
+	}
+
+	private saveMatchRoom () {
+		const now = new Date();
+		const pad = (n: any) => n.toString().padStart(2, '0');
+		const formattedTime = `${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}_${pad(now.getHours())}${pad(now.getMinutes())}`;
+		const filePath = path.join(__dirname, '..', 'matches', `match-${formattedTime}.json`);
+		const matchesDir = path.join(__dirname, '..', 'matches');
+	
+		if (!fs.existsSync(matchesDir)) fs.mkdirSync(matchesDir);
+	
+		fs.writeFileSync(filePath, JSON.stringify(this.getMatchData(), null, 2));
+	}
+
+	private checkMove (x: number, y: number, player: number): void {
+		this.history.push(new MoveHistory(player, x, y, this.grid.map(row => row.map(cell => cell))));
+
+		this.grid[y][x] = player;
+
+		if (!this.grid.some(row => row.includes(0))) {
+			this.gameOver(Room.GAME_OVER_STATUS_DRAW);
+			return;
+		}
+
+		console.log(this.grid);
+	}
+
+	private gameOver (status: number): void {
+		if (status === Room.GAME_OVER_STATUS_DRAW) {
+			const message = {
+				code: WEBSOCKET_PROTOCOL_CODES.GAME_OVER,
+				winner: 0
+			};
+
+			this.clientA.send(message);
+			this.clientB.send(message);
+		}
+
+		this.saveMatchRoom();
+		this.close();
 	}
 
 	private static getNewId (): string {
