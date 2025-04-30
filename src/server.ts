@@ -34,7 +34,7 @@ app.post('/game-data', (req, res) => {
 const server = app.listen(port, () => console.log(`Server is running on http://localhost:${port}`));
 const wss = new WebSocket.Server({ server });
 
-const rooms = new Array<Room>();
+let rooms = new Array<Room>();
 let lastRoom: Room | null = null;
 
 wss.on('connection', (ws, req) => {
@@ -53,6 +53,7 @@ wss.on('connection', (ws, req) => {
 	console.log('Player name:', playerName);
 });
 
-function sendMessage (ws: WebSocket, message: any) {
-	if (ws && ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify(message));
-}
+setInterval(() => {
+	rooms = rooms.filter(room => room.status !== Room.STATUS_CLOSED);
+	console.log(rooms.map(room => `[${room.id}-${room.status}]`).join(', '));
+}, 1000);

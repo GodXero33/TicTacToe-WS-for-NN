@@ -29,25 +29,23 @@ export default class GameConnectionHandler {
 	}
 
 	#onmessage (event) {
-		console.log('Message received:', JSON.parse(event.data));
-
 		try {
 			const data = JSON.parse(event.data);
+			console.log(data);
 
-			if (!data || !data.code) return;
+			if (!data || !data.code === undefined) return;
 
-			if (data.code === WEBSOCKET_PROTOCOL_CODES['START_REQUEST']) {
-				console.log(data);
+			if (data.code === WEBSOCKET_PROTOCOL_CODES.START_REQUEST) {
 				this.send({
-					code: WEBSOCKET_PROTOCOL_CODES['START_ACCEPTED']
+					code: WEBSOCKET_PROTOCOL_CODES.START_ACCEPTED
 				});
 			}
 
-			// if (data.code === 'move') {
-			// 	if (!this.game) return;
+			// // if (data.code === 'move') {
+			// // 	if (!this.game) return;
 
-			// 	this.game.onServerClick(data.move.x, data.move.y, data.player);
-			// }
+			// // 	this.game.onServerClick(data.move.x, data.move.y, data.player);
+			// // }
 		} catch (error) {
 			console.error(error);
 		}
