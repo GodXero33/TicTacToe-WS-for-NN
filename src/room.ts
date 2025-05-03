@@ -26,7 +26,7 @@ export default class Room {
 
 	public static GAME_OVER_STATUS_PLAYER_1 = 1;
 	public static GAME_OVER_STATUS_PLAYER_2 = 2;
-	public static GAME_OVER_STATUS_DRAW = 3;
+	public static GAME_OVER_STATUS_DRAW = 0;
 
 	private clientA!: Client;
 	private clientB!: Client;
@@ -129,14 +129,13 @@ export default class Room {
 		};
 
 		if (client == this.clientA) {
-			this.checkMove(x, y, this.isClientAFirstPlayer ? 1 : 2);
-
 			this.clientA.send(mgForClient);
 			this.clientB.send(mgForOpponent);
+			this.checkMove(x, y, this.isClientAFirstPlayer ? 1 : 2);
 		} else {
-			this.checkMove(x, y, this.isClientAFirstPlayer ? 2 : 1);
 			this.clientA.send(mgForOpponent);
 			this.clientB.send(mgForClient);
+			this.checkMove(x, y, this.isClientAFirstPlayer ? 2 : 1);
 		}
 	}
 
@@ -159,10 +158,69 @@ export default class Room {
 		fs.writeFileSync(filePath, JSON.stringify(this.getMatchData(), null, 2));
 	}
 
+	private checkWin (): boolean {
+		let total = 0;
+		let hasZero = false;
+
+		for (let a = 0; a < 3; a++) {
+			for (let b = 0; b < 3; b++) {
+				const cell = this.grid[a][b];
+				total += cell;
+
+				if (cell == 0) hasZero = true;
+			}
+
+			if (!hasZero && total % 3 == 0) return true;
+
+			total = 0;
+			hasZero = false;
+
+			for (let b = 0; b < 3; b++) {
+				const cell = this.grid[b][a];
+				total += cell;
+
+				if (cell == 0) hasZero = true;
+			}
+
+			if (!hasZero && total % 3 == 0) return true;
+		}
+
+		total = 0;
+		hasZero = false;
+
+		for (let a = 0; a < 3; a++) {
+			const cell = this.grid[a][a];
+			total += cell;
+
+			if (cell == 0) hasZero = true;
+		}
+
+		if (!hasZero && total % 3 == 0) return true;
+
+		total = 0;
+		hasZero = false;
+
+		for (let a = 0; a < 3; a++) {
+			const cell = this.grid[a][2 - a];
+			total += cell;
+
+			if (cell == 0) hasZero = true;
+		}
+
+		if (!hasZero && total % 3 == 0) return true;
+
+		return false;
+	}
+
 	private checkMove (x: number, y: number, player: number): void {
+		this.grid[y][x] = player;
+
 		this.history.push(new MoveHistory(player, x, y, this.grid.map(row => row.map(cell => cell))));
 
-		this.grid[y][x] = player;
+		if (this.checkWin()) {
+			this.gameOver(player == 1 ? Room.GAME_OVER_STATUS_PLAYER_1 : Room.GAME_OVER_STATUS_PLAYER_2);
+			return;
+		}
 
 		if (!this.grid.some(row => row.includes(0))) {
 			this.gameOver(Room.GAME_OVER_STATUS_DRAW);
@@ -173,15 +231,13 @@ export default class Room {
 	}
 
 	private gameOver (status: number): void {
-		if (status === Room.GAME_OVER_STATUS_DRAW) {
-			const message = {
-				code: WEBSOCKET_PROTOCOL_CODES.GAME_OVER,
-				winner: 0
-			};
+		const message = {
+			code: WEBSOCKET_PROTOCOL_CODES.GAME_OVER,
+			winner: status == Room.GAME_OVER_STATUS_DRAW ? 0 : status == Room.GAME_OVER_STATUS_PLAYER_1 ? 1 : 2
+		};
 
-			this.clientA.send(message);
-			this.clientB.send(message);
-		}
+		this.clientA.send(message);
+		this.clientB.send(message);
 
 		this.saveMatchRoom();
 		this.close();

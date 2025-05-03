@@ -2,8 +2,6 @@ import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import WebSocket from 'ws';
-import path from 'path';
-import fs from 'fs';
 import { URL } from 'url';
 import Room from './room';
 
@@ -40,5 +38,6 @@ wss.on('connection', (ws, req) => {
 
 setInterval(() => {
 	rooms = rooms.filter(room => room.status !== Room.STATUS_CLOSED);
-	console.log(rooms.map(room => `[${room.id}-${room.status}]`).join(', '));
+
+	if (rooms.length) console.log(rooms.map(room => `[${room.id}-${room.status}]`).join(', '));
 }, 1000);

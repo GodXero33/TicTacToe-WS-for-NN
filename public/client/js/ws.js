@@ -4,7 +4,8 @@ const WEBSOCKET_PROTOCOL_CODES = {
 	'PLAYER_CHANCE': 2,
 	'WAIT_FOR_OPPONENT': 3,
 	'MOVE': 4,
-	'MOVE_BACK': 5
+	'MOVE_BACK': 5,
+	'GAME_OVER': 6
 };
 
 export default class GameConnectionHandler {
@@ -14,6 +15,7 @@ export default class GameConnectionHandler {
 		this.player = null;
 		this.roomId = null;
 		this.game = null;
+		this.isGameOver = false;
 		this.opponent = null;
 		this.initialized = false;
 		this.playerChance = false;
@@ -76,6 +78,23 @@ export default class GameConnectionHandler {
 				alert('Your turn');
 
 				this.playerChance = true;
+
+				return;
+			}
+
+			if (data.code === WEBSOCKET_PROTOCOL_CODES.GAME_OVER) {
+				this.isGameOver = true;
+
+				if (data.winner === 0) {
+					alert('draw');
+				} else if (data.winner === this.player) {
+					alert('You won');
+				} else {
+					alert('You lost');
+				}
+
+				// for now just reload
+				window.location.reload();
 			}
 		} catch (error) {
 			console.error(error);
@@ -99,7 +118,7 @@ export default class GameConnectionHandler {
 		this.#connectWebSocket();
 
 		const reconnectInterval = setInterval(() => {
-			if (this.ws.readyState === WebSocket.CLOSED) {
+			if (!this.isGameOver && this.ws.readyState === WebSocket.CLOSED) {
 				console.log('Reconnecting WebSocket...');
 				this.#connectWebSocket();
 			}
